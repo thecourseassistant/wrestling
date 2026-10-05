@@ -33,7 +33,8 @@ class SoundEngine {
 
   private preloadCustomAudio() {
     try {
-      const audioModules = import.meta.glob('/src/assets/audio/*.{mp3,wav,ogg}', { eager: true, import: 'default' });
+      // Use relative path globbing so Vite resolves assets properly in dev AND build (GitHub Pages / subfolders)
+      const audioModules = import.meta.glob('../assets/audio/*.{mp3,wav,ogg}', { eager: true, import: 'default' });
 
       Object.entries(audioModules).forEach(([path, url]) => {
         const fileName = path.split('/').pop()?.split('.')[0]?.toLowerCase();
@@ -80,7 +81,6 @@ class SoundEngine {
       const customAudio = this.audioCache[key];
       const isFailed = this.audioFailed[key];
 
-      // If valid non-zero byte HTML5 audio element exists, play it!
       if (customAudio && !isFailed && customAudio.duration > 0) {
         try {
           const clone = customAudio.cloneNode() as HTMLAudioElement;
@@ -101,7 +101,6 @@ class SoundEngine {
       }
     }
 
-    // Fallback to built-in Web Audio API synthesizer
     fallbackFn();
   }
 

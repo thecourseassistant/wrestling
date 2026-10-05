@@ -58,9 +58,19 @@ export const TeacherSettingsModal: React.FC<TeacherSettingsModalProps> = ({ isOp
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number>(0);
 
   const appsScriptCodeSnippet = `
+// 📌 PASTE YOUR GOOGLE SHEET LINK BETWEEN THE QUOTES BELOW:
+var GOOGLE_SHEET_URL = "PASTE_YOUR_GOOGLE_SHEET_URL_HERE";
+
+function getTargetSheet() {
+  if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.indexOf("http") === 0) {
+    return SpreadsheetApp.openByUrl(GOOGLE_SHEET_URL).getActiveSheet();
+  }
+  return SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+}
+
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var sheet = getTargetSheet();
     
     // Auto-create header row if sheet is empty
     if (sheet.getLastRow() === 0) {
@@ -472,6 +482,10 @@ function doGet(e) {
                       {copiedScript ? 'COPIED!' : 'COPY CODE'}
                     </button>
                   </div>
+
+                  <p className="text-[11px] text-slate-300">
+                    Line 2 below contains <code className="bg-slate-900 text-amber-300 px-1 rounded">GOOGLE_SHEET_URL</code>. Paste your Google Sheet URL into it!
+                  </p>
 
                   <pre className="bg-slate-900 border border-slate-800 p-3 rounded font-mono text-[10px] text-emerald-400 max-h-48 overflow-y-auto overflow-x-auto leading-relaxed">
                     {appsScriptCodeSnippet}

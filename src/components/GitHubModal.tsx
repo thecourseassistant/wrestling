@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Github, Check, Copy, Terminal, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Github, Check, Copy, Terminal, ExternalLink, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface GitHubModalProps {
   isOpen: boolean;
@@ -17,14 +17,10 @@ git init
 git add .
 git commit -m "Initial commit: WrestleFest Vocabulary Championship"
 
-# Step 2: Link to your GitHub Repository
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+# Step 2: Push to GitHub
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 git branch -M main
 git push -u origin main
-
-# Step 3 (Optional): Build and Deploy to GitHub Pages (No 404 Error)
-npm run build
-npx gh-pages -d dist
   `.trim();
 
   const handleCopy = () => {
@@ -40,7 +36,7 @@ npx gh-pages -d dist
           <div className="flex items-center gap-2 text-amber-400">
             <Github className="w-6 h-6" />
             <h2 className="font-arcade text-lg font-bold tracking-wider uppercase">
-              PUSH TO GITHUB & PREVENT 404 ERRORS
+              FIX GITHUB PAGES 404 ERROR
             </h2>
           </div>
           <button
@@ -51,17 +47,27 @@ npx gh-pages -d dist
           </button>
         </div>
 
-        {/* 🛠️ 404 FIX NOTICE */}
-        <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 mb-4 flex items-start gap-3">
+        {/* 🛠️ STEP-BY-STEP SOLUTION FOR 404 */}
+        <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4 mb-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-200 leading-relaxed">
-            <p className="font-bold text-amber-300 mb-1">
-              Why 404 Errors Happen on GitHub Pages:
+          <div className="text-xs text-amber-200 leading-relaxed space-y-2">
+            <p className="font-bold text-amber-300 text-sm">
+              Why you get a 404 error on GitHub Pages:
             </p>
             <p>
-              GitHub Pages hosts repositories under subpaths like <code className="bg-slate-950 px-1 rounded text-emerald-300">/your-repo-name/</code>.
-              We configured <code className="bg-slate-950 px-1 rounded text-amber-300">base: './'</code> in <code className="bg-slate-950 px-1 rounded text-amber-300">vite.config.ts</code> and added <code className="bg-slate-950 px-1 rounded text-emerald-300">public/404.html</code> so all assets load with relative paths!
+              GitHub Pages tries to serve uncompiled React source code directly unless you enable **GitHub Actions** build deployment!
             </p>
+            <div className="bg-slate-950/90 border border-amber-500/30 p-2.5 rounded-lg space-y-1 text-[11px]">
+              <p className="font-bold text-emerald-400 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Easy 1-Minute Fix in GitHub Settings:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-300 font-sans">
+                <li>Go to your GitHub repository page.</li>
+                <li>Click <strong>Settings</strong> (top tab) ➔ <strong>Pages</strong> (left sidebar).</li>
+                <li>Under <strong>Build and deployment</strong> ➔ <strong>Source</strong>, select <span className="text-amber-300 font-bold">"GitHub Actions"</span>.</li>
+                <li>Done! GitHub Actions will build and deploy the game with zero 404 errors!</li>
+              </ol>
+            </div>
           </div>
         </div>
 
@@ -69,7 +75,7 @@ npx gh-pages -d dist
           <div className="flex items-center justify-between mb-2">
             <span className="font-mono text-xs font-bold text-amber-300 flex items-center gap-2">
               <Terminal className="w-4 h-4 text-cyan-400" />
-              Terminal Git Commands
+              Git Commands to Push Code
             </span>
             <button
               onClick={handleCopy}
@@ -86,11 +92,13 @@ npx gh-pages -d dist
         </div>
 
         <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
-          <p className="font-bold text-slate-200">✅ Configured for 0-Configuration Deployments:</p>
+          <p className="font-bold text-slate-200 flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Automatically Included Files:
+          </p>
           <ul className="list-disc list-inside space-y-0.5">
-            <li>Relative asset pathing (<code className="text-amber-300">base: './'</code>) in <code className="text-amber-300">vite.config.ts</code></li>
-            <li>GitHub Pages SPA fallback route (<code className="text-amber-300">public/404.html</code>)</li>
-            <li>Direct Vercel / Netlify / GitHub Pages deployment compatible</li>
+            <li><code className="text-amber-300">.github/workflows/deploy.yml</code> for automated GitHub Pages compilation</li>
+            <li><code className="text-amber-300">public/.nojekyll</code> to bypass Jekyll file ignores</li>
+            <li><code className="text-amber-300">public/404.html</code> & <code className="text-amber-300">base: './'</code> relative asset paths</li>
           </ul>
         </div>
       </div>

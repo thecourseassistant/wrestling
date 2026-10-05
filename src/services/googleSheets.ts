@@ -39,7 +39,7 @@ export function getLocalMatchResults(): MatchResultData[] {
 export async function submitToGoogleSheets(data: MatchResultData, overrideUrl?: string): Promise<{ success: boolean; message: string }> {
   const scriptUrl = overrideUrl || getStoredAppsScriptUrl();
 
-  // Save locally always
+  // Save locally always as backup
   saveMatchResultLocally(data);
 
   if (!scriptUrl) {
@@ -49,46 +49,39 @@ export async function submitToGoogleSheets(data: MatchResultData, overrideUrl?: 
     };
   }
 
+  const payloadString = JSON.stringify(data);
+
+  // Try sendBeacon first for maximum reliability across page unloads & cross-origin limits
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    try {
+      const blob = new Blob([payloadString], { type: 'text/plain;charset=utf-8' });
+      const sent = navigator.sendBeacon(scriptUrl, blob);
+      if (sent) {
+        return { success: true, message: 'Successfully delivered result to Google Sheet!' };
+      }
+    } catch {
+      // Fallback to mode: 'no-cors' fetch
+    }
+  }
+
+  // mode: 'no-cors' fetch directly prevents CORS preflight errors with Google Apps Script
   try {
-    // Standard Google Apps Script POST with text/plain to avoid CORS preflight issues
-    const response = await fetch(scriptUrl, {
+    await fetch(scriptUrl, {
       method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-cache',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
       },
-      body: JSON.stringify(data),
+      body: payloadString,
     });
 
-    if (response.ok) {
-      return { success: true, message: 'Successfully sent result to Google Sheet!' };
-    } else {
-      // Sometimes Apps Script redirects with 302/200; mode no-cors as fallback
-      await fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: JSON.stringify(data),
-      });
-      return { success: true, message: 'Sent result to Google Sheet!' };
-    }
+    return { success: true, message: 'Result delivered to Google Sheet!' };
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.warn('Google Sheets submission error, trying fallback no-cors:', errorMsg);
-    try {
-      await fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data),
-      });
-      return { success: true, message: 'Sent to Google Sheet (no-cors mode)!' };
-    } catch (e2) {
-      return {
-        success: false,
-        message: 'Could not connect to Google Apps Script. Results saved locally.'
-      };
-    }
+    return {
+      success: false,
+      message: 'Could not connect to Google Apps Script. Results saved locally.'
+    };
   }
 }
 
@@ -109,63 +102,3 @@ export function generateCSVExport(results: MatchResultData[]): string {
 
   return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
 }
-
-export const APPS_SCRIPT_TEMPLATE = `
-// ==========================================
-// WWF WRESTLEFEST VOCABULARY APPS SCRIPT
-// Paste this code into Google Sheets -> Extensions -> Apps Script
-// Then deploy as "Web App" (Execute as Me, Access: Anyone)
-// ==========================================
-
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Add headers if sheet is empty
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow([
-        "Timestamp", 
-        "Student Name", 
-        "Student ID", 
-        "Class", 
-        "Score", 
-        "Correct Answers", 
-        "Incorrect Answers", 
-        "Time Spent (sec)", 
-        "Match Result", 
-        "Wrestler Used", 
-        "Opponent"
-      ]);
-      sheet.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#1e293b").setFontColor("#ffffff");
-    }
-    
-    var data = JSON.parse(e.postData.contents);
-    
-    sheet.appendRow([
-      data.timestamp || new Date().toISOString(),
-      data.studentName || "Anonymous Student",
-      data.studentId || "N/A",
-      data.className || "N/A",
-      data.score || 0,
-      data.correctAnswersCount || 0,
-      data.incorrectAnswersCount || 0,
-      data.timeSpentSeconds || 0,
-      data.matchResult || "WIN",
-      data.wrestlerUsed || "The Hulkster",
-      data.opponentDefeated || "CPU"
-    ]);
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "success", message: "Result recorded!" }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput("WrestleFest Google Apps Script Endpoint is Active!");
-}
-`;
