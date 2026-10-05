@@ -1,0 +1,8 @@
+{
+  "name": "WWF WrestleFest Arcade - Vocabulary Edition",
+  "description": "Retro arcade wrestling game inspired by WWF WrestleFest. Fill your Super Gauge, master vocabulary definitions to execute mega combos, and record match results to Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
