@@ -5,7 +5,10 @@ import {
   getOpponentFrameMapping,
   savePlayerFrameMapping,
   saveOpponentFrameMapping,
-  resetFrameMappings
+  resetFrameMappings,
+  generateShareableSyncUrl,
+  exportFrameMappingsJSON,
+  importFrameMappingsJSON
 } from '../game/frameMapping';
 import {
   WordItem,
@@ -22,7 +25,7 @@ import {
 
 import redjacketSheetImg from '../assets/images/redjacket_referee_sheet_1791181033322.jpg';
 import heavyBrawlerSheetImg from '../assets/images/heavyweight_brawler_spritesheet_1791181703571.jpg';
-import { Plus, Trash2, Edit2, Save, RefreshCw, Send, CheckCircle2, Link2, BookOpen, Layers, Copy, Check, Code } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, RefreshCw, Send, CheckCircle2, Link2, BookOpen, Layers, Copy, Check, Code, Share2, Upload, Download } from 'lucide-react';
 
 interface TeacherSettingsModalProps {
   isOpen: boolean;
@@ -41,6 +44,12 @@ export const TeacherSettingsModal: React.FC<TeacherSettingsModalProps> = ({ isOp
   const [appsScriptSaveSuccess, setAppsScriptSaveSuccess] = useState<boolean>(false);
   const [testPayloadStatus, setTestPayloadStatus] = useState<string | null>(null);
   const [copiedScript, setCopiedScript] = useState<boolean>(false);
+
+  // Sync States
+  const [syncUrlCopied, setSyncUrlCopied] = useState<boolean>(false);
+  const [jsonImportText, setJsonImportText] = useState<string>('');
+  const [showJsonImportInput, setShowJsonImportInput] = useState<boolean>(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   // Vocabulary States
   const [vocabList, setVocabList] = useState<WordItem[]>([]);
@@ -154,6 +163,35 @@ function doGet(e) {
     navigator.clipboard.writeText(appsScriptCodeSnippet);
     setCopiedScript(true);
     setTimeout(() => setCopiedScript(false), 3000);
+  };
+
+  const handleCopySyncUrl = () => {
+    const url = generateShareableSyncUrl();
+    navigator.clipboard.writeText(url);
+    setSyncUrlCopied(true);
+    setTimeout(() => setSyncUrlCopied(false), 4000);
+  };
+
+  const handleExportJson = () => {
+    const jsonStr = exportFrameMappingsJSON();
+    navigator.clipboard.writeText(jsonStr);
+    setImportStatus('✅ Frame Mapping JSON copied to clipboard!');
+    setTimeout(() => setImportStatus(null), 3000);
+  };
+
+  const handleImportJson = () => {
+    if (!jsonImportText.trim()) return;
+    const success = importFrameMappingsJSON(jsonImportText.trim());
+    if (success) {
+      setPlayerMapping(getPlayerFrameMapping());
+      setOpponentMapping(getOpponentFrameMapping());
+      setImportStatus('✅ Successfully imported and updated Frame Mappings across app!');
+      setShowJsonImportInput(false);
+      setJsonImportText('');
+    } else {
+      setImportStatus('❌ Invalid JSON configuration format!');
+    }
+    setTimeout(() => setImportStatus(null), 4000);
   };
 
   const handleTestAppsScriptPayload = async () => {
@@ -357,7 +395,6 @@ function doGet(e) {
             {/* TAB CONTENT 1: FULL VOCABULARY LIST EDITOR */}
             {activeTab === 'vocab' && (
               <div className="flex flex-col gap-4 text-xs">
-                {/* ADD NEW WORD FORM */}
                 <form onSubmit={handleAddWord} className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex flex-col gap-2">
                   <span className="font-bold text-amber-300 font-arcade text-xs">➕ ADD NEW VOCABULARY ITEM</span>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -384,7 +421,6 @@ function doGet(e) {
                   </div>
                 </form>
 
-                {/* WORD LIST TABLE */}
                 <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
                   {vocabList.map((item) => {
                     const isEditing = editingId === item.id;
@@ -468,7 +504,6 @@ function doGet(e) {
             {/* TAB CONTENT 2: GOOGLE APPS SCRIPT WEB APP URL INPUT & CODE SNIPPET */}
             {activeTab === 'appscript' && (
               <div className="flex flex-col gap-4 text-xs">
-                {/* CODE SNIPPET BOX */}
                 <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-amber-300 font-arcade text-xs flex items-center gap-1.5">
@@ -492,7 +527,6 @@ function doGet(e) {
                   </pre>
                 </div>
 
-                {/* WEB APP URL INPUT BOX */}
                 <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800 flex flex-col gap-3">
                   <span className="font-bold text-amber-300 font-arcade text-xs flex items-center gap-1.5">
                     <Link2 className="w-4 h-4 text-cyan-400" /> DEPLOYED WEB APP URL
@@ -541,6 +575,70 @@ function doGet(e) {
             {/* TAB CONTENT 3 & 4: SPRITE FRAME MAPPER */}
             {(activeTab === 'player_frames' || activeTab === 'opponent_frames') && (
               <div className="flex flex-col gap-4">
+                {/* 🌐 CROSS-DEVICE FRAME SYNC TOOLBAR */}
+                <div className="bg-slate-950 p-3 rounded-xl border border-amber-500/40 flex flex-col gap-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="font-arcade text-xs text-amber-300 font-bold flex items-center gap-1.5">
+                      <Share2 className="w-4 h-4 text-cyan-400" /> CROSS-DEVICE FRAME SYNC
+                    </span>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={handleCopySyncUrl}
+                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-arcade text-[10px] font-bold rounded flex items-center gap-1 shadow-md"
+                        title="Copy shareable link that loads these exact frames on any student device"
+                      >
+                        {syncUrlCopied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+                        {syncUrlCopied ? 'SYNC LINK COPIED!' : 'COPY DEVICE SYNC LINK'}
+                      </button>
+
+                      <button
+                        onClick={handleExportJson}
+                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-arcade text-[10px] rounded flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" /> EXPORT JSON
+                      </button>
+
+                      <button
+                        onClick={() => setShowJsonImportInput(!showJsonImportInput)}
+                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-arcade text-[10px] rounded flex items-center gap-1"
+                      >
+                        <Upload className="w-3.5 h-3.5" /> IMPORT JSON
+                      </button>
+                    </div>
+                  </div>
+
+                  {syncUrlCopied && (
+                    <p className="text-emerald-400 font-sans text-[11px] font-bold">
+                      ✅ Device Sync Link Copied! Send this link to any tablet, phone, or laptop to automatically load these exact frame mappings on that device!
+                    </p>
+                  )}
+
+                  {importStatus && (
+                    <p className="text-amber-300 font-mono text-[11px] font-bold">
+                      {importStatus}
+                    </p>
+                  )}
+
+                  {showJsonImportInput && (
+                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-800">
+                      <textarea
+                        rows={3}
+                        placeholder='Paste frame mappings JSON here...'
+                        value={jsonImportText}
+                        onChange={(e) => setJsonImportText(e.target.value)}
+                        className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono text-[10px] text-emerald-400 focus:outline-none focus:border-amber-400"
+                      />
+                      <button
+                        onClick={handleImportJson}
+                        className="self-end px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-arcade text-xs font-bold rounded flex items-center gap-1"
+                      >
+                        <Save className="w-3.5 h-3.5" /> APPLY IMPORTED JSON
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                   {[
                     { key: 'idleFrames', label: 'IDLE' },

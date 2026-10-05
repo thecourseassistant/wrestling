@@ -35,6 +35,7 @@ const STORAGE_KEY_PLAYER = 'wrestle_player_frame_mapping_v1';
 const STORAGE_KEY_OPPONENT = 'wrestle_opponent_frame_mapping_v1';
 
 export function getPlayerFrameMapping(): CharacterFrameMapping {
+  applyUrlFrameMappingsIfPresent();
   try {
     const saved = localStorage.getItem(STORAGE_KEY_PLAYER);
     if (saved) return JSON.parse(saved);
@@ -45,6 +46,7 @@ export function getPlayerFrameMapping(): CharacterFrameMapping {
 }
 
 export function getOpponentFrameMapping(): CharacterFrameMapping {
+  applyUrlFrameMappingsIfPresent();
   try {
     const saved = localStorage.getItem(STORAGE_KEY_OPPONENT);
     if (saved) return JSON.parse(saved);
@@ -65,4 +67,69 @@ export function saveOpponentFrameMapping(mapping: CharacterFrameMapping) {
 export function resetFrameMappings() {
   localStorage.removeItem(STORAGE_KEY_PLAYER);
   localStorage.removeItem(STORAGE_KEY_OPPONENT);
+}
+
+// 🌐 CROSS-DEVICE SYNC HELPERS
+export function exportFrameMappingsJSON(): string {
+  const p = getPlayerFrameMapping();
+  const o = getOpponentFrameMapping();
+  return JSON.stringify({ player: p, opponent: o }, null, 2);
+}
+
+export function importFrameMappingsJSON(jsonStr: string): boolean {
+  try {
+    const data = JSON.parse(jsonStr);
+    if (data.player && data.opponent) {
+      savePlayerFrameMapping(data.player);
+      saveOpponentFrameMapping(data.opponent);
+      return true;
+    }
+  } catch {
+    // Error
+  }
+  return false;
+}
+
+export function generateShareableSyncUrl(): string {
+  if (typeof window === 'undefined') return '';
+  const p = getPlayerFrameMapping();
+  const o = getOpponentFrameMapping();
+
+  const encodedP = encodeURIComponent(JSON.stringify(p));
+  const encodedO = encodeURIComponent(JSON.stringify(o));
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('pf', encodedP);
+  url.searchParams.set('of', encodedO);
+
+  return url.toString();
+}
+
+let hasAppliedUrlParams = false;
+
+export function applyUrlFrameMappingsIfPresent() {
+  if (hasAppliedUrlParams || typeof window === 'undefined') return;
+  hasAppliedUrlParams = true;
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const pf = params.get('pf');
+    const of = params.get('of');
+
+    if (pf) {
+      const parsedP = JSON.parse(decodeURIComponent(pf));
+      if (parsedP && parsedP.idleFrames) {
+        savePlayerFrameMapping(parsedP);
+      }
+    }
+
+    if (of) {
+      const parsedO = JSON.parse(decodeURIComponent(of));
+      if (parsedO && parsedO.idleFrames) {
+        saveOpponentFrameMapping(parsedO);
+      }
+    }
+  } catch {
+    // Error parsing
+  }
 }
