@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WrestlingMatchEngine } from './game/wrestlingEngine';
 import { WRESTLER_ROSTER, Wrestler } from './data/wrestlers';
-import { DEFAULT_VOCABULARY, WordItem } from './data/words';
+import { WordItem, getStoredVocabulary } from './data/words';
 import { sound } from './utils/audio';
 
 import { WrestleCanvas } from './components/WrestleCanvas';
@@ -14,7 +14,7 @@ import { RoundIntroModal } from './components/RoundIntroModal';
 import { TeacherSettingsModal } from './components/TeacherSettingsModal';
 import { GitHubModal } from './components/GitHubModal';
 
-import { Play, Settings, Github, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { Play, Settings, Github, Volume2, VolumeX } from 'lucide-react';
 import { MatchResultData } from './services/googleSheets';
 
 type GameState = 'TITLE_MENU' | 'PLAYING' | 'MATCH_OVER';
@@ -32,13 +32,17 @@ export default function App() {
 
   const engineRef = useRef<WrestlingMatchEngine | null>(null);
   const [, setTick] = useState<number>(0);
+  const [activeVocab, setActiveVocab] = useState<WordItem[]>(getStoredVocabulary());
   const [vocabIndex, setVocabIndex] = useState<number>(0);
-  const [currentWord, setCurrentWord] = useState<WordItem>(DEFAULT_VOCABULARY[0]);
+  const [currentWord, setCurrentWord] = useState<WordItem>(getStoredVocabulary()[0] || { id: 'w1', word: 'entertainment', definition: 'watch for pleasure' });
   const [showVocabOverlay, setShowVocabOverlay] = useState<boolean>(false);
 
   const [matchResultData, setMatchResultData] = useState<MatchResultData | null>(null);
 
   const startMatch = () => {
+    const loadedVocab = getStoredVocabulary();
+    setActiveVocab(loadedVocab);
+
     engineRef.current = new WrestlingMatchEngine(
       playerWrestler,
       opponentWrestler,
@@ -56,8 +60,12 @@ export default function App() {
       }
     );
 
+    if (engineRef.current) {
+      engineRef.current.totalVocabularyCount = loadedVocab.length;
+    }
+
     setVocabIndex(0);
-    setCurrentWord(DEFAULT_VOCABULARY[0]);
+    setCurrentWord(loadedVocab[0] || { id: 'w1', word: 'entertainment', definition: 'watch for pleasure' });
     setShowVocabOverlay(false);
     setGameState('PLAYING');
 
@@ -133,9 +141,9 @@ export default function App() {
 
     setShowVocabOverlay(false);
 
-    const nextIdx = (vocabIndex + 1) % DEFAULT_VOCABULARY.length;
+    const nextIdx = (vocabIndex + 1) % activeVocab.length;
     setVocabIndex(nextIdx);
-    setCurrentWord(DEFAULT_VOCABULARY[nextIdx]);
+    setCurrentWord(activeVocab[nextIdx]);
   };
 
   const toggleMute = () => {
@@ -148,7 +156,7 @@ export default function App() {
     <div className="relative w-full h-full bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
       <OrientationBanner />
 
-      {/* TITLE MENU (CLEAN & STREAMLINED) */}
+      {/* TITLE MENU */}
       {gameState === 'TITLE_MENU' && (
         <div className="relative w-full h-full flex flex-col items-center justify-between p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
           <div className="w-full max-w-4xl flex items-center justify-between">
@@ -192,7 +200,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* PRESS START BUTTON */}
             <button
               onClick={startMatch}
               className="group relative px-10 py-5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-arcade text-base md:text-xl font-black rounded-2xl shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.6)] active:scale-95 transition-all flex items-center gap-3 border-2 border-yellow-200"
@@ -226,7 +233,7 @@ export default function App() {
           {showVocabOverlay && (
             <VocabOverlay
               currentWord={currentWord}
-              allWords={DEFAULT_VOCABULARY}
+              allWords={activeVocab}
               onAnswerSubmit={handleVocabAnswerSubmit}
             />
           )}

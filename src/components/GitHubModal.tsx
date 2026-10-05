@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Github, Check, Copy, Terminal, ExternalLink } from 'lucide-react';
+import { Github, Check, Copy, Terminal, ExternalLink, AlertTriangle } from 'lucide-react';
 
 interface GitHubModalProps {
   isOpen: boolean;
@@ -12,17 +12,19 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({ isOpen, onClose }) => 
   if (!isOpen) return null;
 
   const gitCommands = `
-# Step 1: Initialize Git Repository
+# Step 1: Initialize Git Repository & Commit
 git init
-
-# Step 2: Add all files & commit
 git add .
-git commit -m "Initial commit: WWF WrestleFest Vocabulary Arcade Game"
+git commit -m "Initial commit: WrestleFest Vocabulary Championship"
 
-# Step 3: Link to your GitHub Repository
-git remote add origin https://github.com/YOUR_USERNAME/wrestlefest-vocabulary-game.git
+# Step 2: Link to your GitHub Repository
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
 git branch -M main
 git push -u origin main
+
+# Step 3 (Optional): Build and Deploy to GitHub Pages (No 404 Error)
+npm run build
+npx gh-pages -d dist
   `.trim();
 
   const handleCopy = () => {
@@ -37,8 +39,8 @@ git push -u origin main
         <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
           <div className="flex items-center gap-2 text-amber-400">
             <Github className="w-6 h-6" />
-            <h2 className="font-teko text-2xl font-bold tracking-wider uppercase">
-              PUSH TO GITHUB INSTRUCTIONS
+            <h2 className="font-arcade text-lg font-bold tracking-wider uppercase">
+              PUSH TO GITHUB & PREVENT 404 ERRORS
             </h2>
           </div>
           <button
@@ -49,15 +51,25 @@ git push -u origin main
           </button>
         </div>
 
-        <p className="font-sans-body text-slate-300 text-xs mb-4 leading-relaxed">
-          This project is structured as a standard Vite + React + TypeScript repository. You can push it directly to GitHub or deploy it for free on GitHub Pages / Vercel!
-        </p>
+        {/* 🛠️ 404 FIX NOTICE */}
+        <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 mb-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-200 leading-relaxed">
+            <p className="font-bold text-amber-300 mb-1">
+              Why 404 Errors Happen on GitHub Pages:
+            </p>
+            <p>
+              GitHub Pages hosts repositories under subpaths like <code className="bg-slate-950 px-1 rounded text-emerald-300">/your-repo-name/</code>.
+              We configured <code className="bg-slate-950 px-1 rounded text-amber-300">base: './'</code> in <code className="bg-slate-950 px-1 rounded text-amber-300">vite.config.ts</code> and added <code className="bg-slate-950 px-1 rounded text-emerald-300">public/404.html</code> so all assets load with relative paths!
+            </p>
+          </div>
+        </div>
 
         <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-sans-body text-xs font-bold text-amber-300 flex items-center gap-2">
+            <span className="font-mono text-xs font-bold text-amber-300 flex items-center gap-2">
               <Terminal className="w-4 h-4 text-cyan-400" />
-              Terminal Commands
+              Terminal Git Commands
             </span>
             <button
               onClick={handleCopy}
@@ -74,12 +86,11 @@ git push -u origin main
         </div>
 
         <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
-          <p className="font-bold text-slate-200">✅ Included Features:</p>
+          <p className="font-bold text-slate-200">✅ Configured for 0-Configuration Deployments:</p>
           <ul className="list-disc list-inside space-y-0.5">
-            <li>Standard <code className="text-amber-300">package.json</code> with Vite build scripts</li>
-            <li>Rotated multi-touch mobile landscape auto-fit</li>
-            <li>Google Apps Script Web App payload integration</li>
-            <li>Local Storage CSV fallback for offline classroom use</li>
+            <li>Relative asset pathing (<code className="text-amber-300">base: './'</code>) in <code className="text-amber-300">vite.config.ts</code></li>
+            <li>GitHub Pages SPA fallback route (<code className="text-amber-300">public/404.html</code>)</li>
+            <li>Direct Vercel / Netlify / GitHub Pages deployment compatible</li>
           </ul>
         </div>
       </div>

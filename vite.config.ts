@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: './', // Ensures relative asset paths so GitHub Pages & subfolder deployments do NOT throw 404 errors!
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

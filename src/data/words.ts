@@ -62,16 +62,48 @@ export const DEFAULT_VOCABULARY: WordItem[] = [
   }
 ];
 
+const VOCAB_STORAGE_KEY = 'wrestlefest_custom_vocabulary_v1';
+
+export function getStoredVocabulary(): WordItem[] {
+  try {
+    const stored = localStorage.getItem(VOCAB_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Fallback
+  }
+  return DEFAULT_VOCABULARY;
+}
+
+export function saveStoredVocabulary(words: WordItem[]) {
+  try {
+    localStorage.setItem(VOCAB_STORAGE_KEY, JSON.stringify(words));
+  } catch {
+    // Fallback
+  }
+}
+
+export function resetStoredVocabularyToDefault(): WordItem[] {
+  try {
+    localStorage.removeItem(VOCAB_STORAGE_KEY);
+  } catch {
+    // Fallback
+  }
+  return DEFAULT_VOCABULARY;
+}
+
 export function getRandomWordChoices(targetWord: WordItem, allWords: WordItem[], count: number = 4): string[] {
   const choices = [targetWord.word];
   const remaining = allWords.filter(w => w.word.toLowerCase() !== targetWord.word.toLowerCase());
   
-  // Shuffle remaining
   const shuffled = [...remaining].sort(() => Math.random() - 0.5);
   for (let i = 0; i < shuffled.length && choices.length < count; i++) {
     choices.push(shuffled[i].word);
   }
 
-  // Shuffle choices
   return choices.sort(() => Math.random() - 0.5);
 }
