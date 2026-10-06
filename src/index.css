@@ -59,10 +59,30 @@
   animation: flashCombo 0.4s infinite alternate ease-in-out;
 }
 
-/* Prevent text selection and unwanted touch highlights on touch controls */
+/* 🍎 COMPLETE IOS SAFARI ANTI-ZOOM & TOUCH PROTECTIONS */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden !important;
+  position: fixed;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
 * {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Fix iOS Safari auto-zoom when tapping inputs (<16px triggers automatic zoom) */
+@media screen and (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
 }
