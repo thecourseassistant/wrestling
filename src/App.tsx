@@ -14,7 +14,7 @@ import { RoundIntroModal } from './components/RoundIntroModal';
 import { TeacherSettingsModal } from './components/TeacherSettingsModal';
 import { GitHubModal } from './components/GitHubModal';
 
-import { Play, Settings, Github, Volume2, VolumeX } from 'lucide-react';
+import { Play, Settings, Github, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { MatchResultData } from './services/googleSheets';
 
 type GameState = 'TITLE_MENU' | 'PLAYING' | 'MATCH_OVER';
@@ -39,7 +39,34 @@ export default function App() {
 
   const [matchResultData, setMatchResultData] = useState<MatchResultData | null>(null);
 
+  const toggleFullscreenLandscape = async () => {
+    try {
+      const elem = document.documentElement as any;
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        }
+
+        if (screen.orientation && (screen.orientation as any).lock) {
+          await (screen.orientation as any).lock('landscape').catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
   const startMatch = () => {
+    toggleFullscreenLandscape();
+
     const loadedVocab = getStoredVocabulary();
     setActiveVocab(loadedVocab);
 
@@ -166,6 +193,15 @@ export default function App() {
 
             <div className="flex items-center gap-2">
               <button
+                onClick={toggleFullscreenLandscape}
+                className="p-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl transition shadow-lg flex items-center gap-1.5 font-arcade text-xs font-bold"
+                title="Toggle Fullscreen Landscape"
+              >
+                <Maximize2 className="w-4 h-4" />
+                <span className="hidden sm:inline">FULLSCREEN</span>
+              </button>
+
+              <button
                 onClick={toggleMute}
                 className="p-2.5 bg-slate-900 border border-slate-700 hover:border-amber-400 rounded-xl text-slate-300 hover:text-amber-400 transition"
               >
@@ -200,13 +236,23 @@ export default function App() {
               </p>
             </div>
 
-            <button
-              onClick={startMatch}
-              className="group relative px-10 py-5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-arcade text-base md:text-xl font-black rounded-2xl shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.6)] active:scale-95 transition-all flex items-center gap-3 border-2 border-yellow-200"
-            >
-              <Play className="w-6 h-6 fill-slate-950" />
-              <span>PRESS START</span>
-            </button>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <button
+                onClick={startMatch}
+                className="group relative px-10 py-5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-arcade text-base md:text-xl font-black rounded-2xl shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_15px_40px_rgba(245,158,11,0.6)] active:scale-95 transition-all flex items-center gap-3 border-2 border-yellow-200"
+              >
+                <Play className="w-6 h-6 fill-slate-950" />
+                <span>PRESS START</span>
+              </button>
+
+              <button
+                onClick={toggleFullscreenLandscape}
+                className="px-6 py-4 bg-slate-900 hover:bg-slate-800 border-2 border-amber-500/60 text-amber-300 hover:text-white font-arcade text-xs md:text-sm font-bold rounded-2xl transition-all flex items-center gap-2"
+              >
+                <Maximize2 className="w-4 h-4 text-amber-400" />
+                <span>FULLSCREEN HORIZONTAL</span>
+              </button>
+            </div>
           </div>
 
           <div className="text-slate-500 text-[10px] font-mono">

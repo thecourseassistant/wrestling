@@ -23,9 +23,25 @@ export const OrientationBanner: React.FC = () => {
     };
   }, []);
 
-  const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+  const handleFullscreenLandscape = async () => {
+    try {
+      const elem = document.documentElement as any;
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        }
+
+        // Lock screen orientation horizontally
+        if (screen.orientation && (screen.orientation as any).lock) {
+          await (screen.orientation as any).lock('landscape').catch(() => {});
+        }
+      }
+    } catch {
+      // Fallback
     }
   };
 
@@ -42,15 +58,15 @@ export const OrientationBanner: React.FC = () => {
       </h2>
 
       <p className="font-sans-body text-slate-300 text-sm max-w-sm mb-6 leading-relaxed">
-        WWF WrestleFest Arcade is designed for multi-touch landscape mobile screens. Turn your device sideways for auto-fit arena action!
+        WrestleFest Arcade is designed for horizontal landscape touchscreens. Turn your phone sideways and click below!
       </p>
 
       <button
-        onClick={handleFullscreen}
-        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-arcade text-xs px-5 py-3 rounded-xl font-bold shadow-2xl active:scale-95 transition"
+        onClick={handleFullscreenLandscape}
+        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-arcade text-xs px-6 py-3.5 rounded-xl font-bold shadow-2xl active:scale-95 transition-all border-2 border-yellow-200"
       >
         <Maximize2 className="w-4 h-4" />
-        ENTER FULLSCREEN
+        ENTER FULLSCREEN LANDSCAPE
       </button>
     </div>
   );
