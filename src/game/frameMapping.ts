@@ -9,13 +9,14 @@ export interface CharacterFrameMapping {
   downFrame: number;
 }
 
+// 🌍 GLOBAL HARDCODED SOURCE DEFAULT FOR ALL DEVICES WORLDWIDE
 export const DEFAULT_PLAYER_MAPPING: CharacterFrameMapping = {
   idleFrames: [0, 1],
   walkFrames: [1, 2],
   punchFrames: [4, 5],
   kickFrames: [10, 11],
   smackFrames: [9, 12],
-  dodgeFrames: [6, 7, 8],
+  dodgeFrames: [6, 7, 7], // Clean roll without frame 8 overhead sumo lift
   hurtFrame: 13,
   downFrame: 14,
 };
@@ -26,7 +27,7 @@ export const DEFAULT_OPPONENT_MAPPING: CharacterFrameMapping = {
   punchFrames: [4, 5],
   kickFrames: [10, 11],
   smackFrames: [9, 12],
-  dodgeFrames: [6, 7, 7], // Avoid frame 8 sumo lift!
+  dodgeFrames: [6, 7, 7], // Clean roll without frame 8 overhead sumo lift
   hurtFrame: 13,
   downFrame: 14,
 };
