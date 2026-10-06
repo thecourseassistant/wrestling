@@ -17,7 +17,7 @@ const APPS_SCRIPT_URL_KEY = 'wrestlefest_apps_script_url';
 const LOCAL_HISTORY_KEY = 'wrestlefest_match_results_history';
 
 // 🌍 DEFAULT GLOBAL APPS SCRIPT WEB APP URL
-export const DEFAULT_GLOBAL_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_SAMPLE_GLOBAL_URL/exec';
+export const DEFAULT_GLOBAL_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFvsMDUBbB1KIW67WEUWeAS_npZB3JIGjrB-wMxgjQire2kBOaYa4Eue0cOplE7leHnQ/exec';
 
 export function getStoredAppsScriptUrl(): string {
   return localStorage.getItem(APPS_SCRIPT_URL_KEY) || DEFAULT_GLOBAL_APPS_SCRIPT_URL;
