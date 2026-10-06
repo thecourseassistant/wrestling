@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WordItem, getRandomWordChoices } from '../data/words';
-import { Sparkles, CheckCircle2, XCircle, Zap } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface VocabOverlayProps {
   currentWord: WordItem;
@@ -20,7 +20,6 @@ export const VocabOverlay: React.FC<VocabOverlayProps> = ({
   const [timeLeft, setTimeLeft] = useState<number>(12);
 
   useEffect(() => {
-    // Generate 4 randomized choices including correct word
     const generatedChoices = getRandomWordChoices(currentWord, allWords, 4);
     setChoices(generatedChoices);
     setSelectedWord(null);
@@ -29,7 +28,6 @@ export const VocabOverlay: React.FC<VocabOverlayProps> = ({
     setTimeLeft(12);
   }, [currentWord, allWords]);
 
-  // Countdown timer
   useEffect(() => {
     if (isAnswered) return;
     if (timeLeft <= 0) {
@@ -60,36 +58,17 @@ export const VocabOverlay: React.FC<VocabOverlayProps> = ({
 
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-3 md:p-6 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-      {/* SUPER GAUGE BANNER HEADER */}
-      <div className="w-full max-w-2xl bg-gradient-to-r from-red-600 via-amber-500 to-yellow-500 p-1 rounded-xl shadow-2xl arcade-border-yellow animate-flash-combo mb-3">
-        <div className="bg-slate-950 p-3 rounded-lg text-center flex flex-col items-center">
-          <div className="flex items-center gap-2 text-yellow-400 font-arcade text-xs md:text-sm tracking-widest uppercase mb-1">
-            <Sparkles className="w-5 h-5 text-cyan-400 animate-spin" />
-            SUPER GAUGE FULL – EXECUTE MOVE COMBO!
-            <Sparkles className="w-5 h-5 text-cyan-400 animate-spin" />
-          </div>
-          <p className="font-sans-body text-slate-300 text-xs">
-            Select the correct vocabulary word matching the definition to land your Finisher!
-          </p>
-        </div>
-      </div>
-
-      {/* DEFINITION DISPLAY BOX */}
-      <div className="w-full max-w-2xl bg-slate-900 border-2 border-cyan-400 rounded-xl p-4 shadow-2xl mb-4 text-center relative overflow-hidden">
+      {/* DEFINITION DISPLAY BOX (Without "DEFINITION ON THE TOP SCREEN" label) */}
+      <div className="w-full max-w-2xl bg-slate-900 border-2 border-amber-400/80 rounded-2xl p-5 md:p-6 shadow-2xl mb-4 text-center relative overflow-hidden">
         {/* Timer Bar */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-800">
           <div
-            className="h-full bg-cyan-400 transition-all duration-1000"
+            className="h-full bg-amber-400 transition-all duration-1000"
             style={{ width: `${(timeLeft / 12) * 100}%` }}
           />
         </div>
 
-        <div className="text-cyan-300 font-arcade text-[10px] uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-          <Zap className="w-4 h-4 text-yellow-400" />
-          DEFINITION ON THE TOP SCREEN:
-        </div>
-
-        <h2 className="font-sans-body text-xl md:text-2xl font-black text-white tracking-wide italic leading-snug">
+        <h2 className="font-sans-body text-xl md:text-3xl font-black text-amber-300 tracking-wide italic leading-relaxed py-2">
           "{currentWord.definition}"
         </h2>
       </div>

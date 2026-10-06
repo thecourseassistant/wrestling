@@ -1,6 +1,5 @@
 import React from 'react';
 import { WrestlingMatchEngine } from '../game/wrestlingEngine';
-import { Flame } from 'lucide-react';
 
 interface WrestleHUDProps {
   engine: WrestlingMatchEngine;
@@ -12,7 +11,6 @@ export const WrestleHUD: React.FC<WrestleHUDProps> = ({ engine }) => {
 
   const playerHpPct = Math.max(0, Math.min(100, player.hp));
   const opponentHpPct = Math.max(0, Math.min(100, (opponent.hp / 150) * 100)); // Normalized to 150 HP
-  const superGaugePct = Math.max(0, Math.min(100, player.superGauge));
 
   const isOpponentPhase2 = engine.opponentLifePhase === 2;
 
@@ -49,20 +47,6 @@ export const WrestleHUD: React.FC<WrestleHUDProps> = ({ engine }) => {
                 />
               </div>
             </div>
-          </div>
-
-          {/* 🔥 RESTORED SUPER GAUGE BAR */}
-          <div className="bg-slate-900/90 border border-amber-500/40 px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-md flex items-center gap-2">
-            <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-            <div className="flex-1 h-2 bg-slate-950 rounded-full overflow-hidden border border-amber-500/30">
-              <div
-                className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 rounded-full transition-all duration-200"
-                style={{ width: `${superGaugePct}%` }}
-              />
-            </div>
-            <span className="font-mono text-[10px] font-bold text-amber-300 shrink-0">
-              SUPER {Math.round(superGaugePct)}%
-            </span>
           </div>
         </div>
 
