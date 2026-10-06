@@ -10,41 +10,11 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   onButtonPress
 }) => {
   const joystickRef = useRef<HTMLDivElement | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [knobPos, setKnobPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const activePointerIdRef = useRef<number | null>(null);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true);
-    activePointerIdRef.current = e.pointerId;
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // Fallback
-    }
-    updateJoystick(e.clientX, e.clientY);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
-    updateJoystick(e.clientX, e.clientY);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (activePointerIdRef.current !== null && e.pointerId === activePointerIdRef.current) {
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // Fallback
-      }
-      activePointerIdRef.current = null;
-    }
-    setIsDragging(false);
-    setKnobPos({ x: 0, y: 0 });
-    onJoystickMove({ x: 0, y: 0 });
-  };
+  // Use refs for synchronous zero-latency touch state tracking
+  const isDraggingRef = useRef<boolean>(false);
+  const activeTouchIdRef = useRef<number | null>(null);
 
   const updateJoystick = (clientX: number, clientY: number) => {
     if (!joystickRef.current) return;
@@ -52,7 +22,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const maxRadius = rect.width / 2 - 15;
+    const maxRadius = Math.max(30, rect.width / 2 - 12);
     const dx = clientX - centerX;
     const dy = clientY - centerY;
     const dist = Math.hypot(dx, dy);
@@ -71,6 +41,65 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
       x: normX / maxRadius,
       y: normY / maxRadius
     });
+  };
+
+  const stopJoystick = () => {
+    isDraggingRef.current = false;
+    activeTouchIdRef.current = null;
+    setKnobPos({ x: 0, y: 0 });
+    onJoystickMove({ x: 0, y: 0 });
+  };
+
+  // NATIVE TOUCH EVENT HANDLERS (0ms latency for iOS / Android mobile browsers)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) return;
+    const touch = e.changedTouches[0];
+    isDraggingRef.current = true;
+    activeTouchIdRef.current = touch.identifier;
+    updateJoystick(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (activeTouchIdRef.current === null || touch.identifier === activeTouchIdRef.current) {
+        updateJoystick(touch.clientX, touch.clientY);
+        break;
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (activeTouchIdRef.current === null || e.changedTouches[i].identifier === activeTouchIdRef.current) {
+        stopJoystick();
+        break;
+      }
+    }
+  };
+
+  // POINTER FALLBACK (For mouse dragging on desktop)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return; // Handled by native touch
+    isDraggingRef.current = true;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Fallback
+    }
+    updateJoystick(e.clientX, e.clientY);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
+    if (!isDraggingRef.current) return;
+    updateJoystick(e.clientX, e.clientY);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
+    stopJoystick();
   };
 
   // Keyboard bindings
@@ -132,6 +161,10 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
       {/* ANALOG JOYSTICK */}
       <div
         ref={joystickRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -151,6 +184,8 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
       <div className="pointer-events-auto flex items-center gap-3">
         {/* ATTACK BUTTON */}
         <button
+          onTouchStart={(e) => { e.preventDefault(); onButtonPress('smack', true); }}
+          onTouchEnd={(e) => { e.preventDefault(); onButtonPress('smack', false); }}
           onPointerDown={(e) => { e.preventDefault(); onButtonPress('smack', true); }}
           onPointerUp={(e) => { e.preventDefault(); onButtonPress('smack', false); }}
           className="w-22 h-22 md:w-26 md:h-26 bg-gradient-to-br from-red-600 to-amber-600 active:from-red-500 active:to-amber-500 text-white font-arcade text-sm md:text-base font-bold rounded-full border-4 border-amber-300 shadow-2xl flex items-center justify-center active:scale-95 transition-transform"
@@ -160,6 +195,8 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
         {/* DODGE BUTTON */}
         <button
+          onTouchStart={(e) => { e.preventDefault(); onButtonPress('dodge', true); }}
+          onTouchEnd={(e) => { e.preventDefault(); onButtonPress('dodge', false); }}
           onPointerDown={(e) => { e.preventDefault(); onButtonPress('dodge', true); }}
           onPointerUp={(e) => { e.preventDefault(); onButtonPress('dodge', false); }}
           className="w-22 h-22 md:w-26 md:h-26 bg-gradient-to-r from-sky-500 to-cyan-400 active:from-sky-400 active:to-cyan-300 text-slate-950 font-arcade text-sm md:text-base font-black rounded-full border-4 border-cyan-200 shadow-2xl flex items-center justify-center active:scale-95 transition-transform"
