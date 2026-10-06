@@ -16,8 +16,11 @@ export interface MatchResultData {
 const APPS_SCRIPT_URL_KEY = 'wrestlefest_apps_script_url';
 const LOCAL_HISTORY_KEY = 'wrestlefest_match_results_history';
 
+// 🌍 DEFAULT GLOBAL APPS SCRIPT WEB APP URL
+export const DEFAULT_GLOBAL_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_SAMPLE_GLOBAL_URL/exec';
+
 export function getStoredAppsScriptUrl(): string {
-  return localStorage.getItem(APPS_SCRIPT_URL_KEY) || '';
+  return localStorage.getItem(APPS_SCRIPT_URL_KEY) || DEFAULT_GLOBAL_APPS_SCRIPT_URL;
 }
 
 export function setStoredAppsScriptUrl(url: string) {
@@ -42,10 +45,10 @@ export async function submitToGoogleSheets(data: MatchResultData, overrideUrl?: 
   // Save locally always as backup
   saveMatchResultLocally(data);
 
-  if (!scriptUrl) {
+  if (!scriptUrl || scriptUrl.includes('SAMPLE_GLOBAL_URL')) {
     return {
       success: false,
-      message: 'No Google Apps Script URL configured. Results saved locally!'
+      message: 'No active Google Apps Script URL configured. Results saved locally!'
     };
   }
 

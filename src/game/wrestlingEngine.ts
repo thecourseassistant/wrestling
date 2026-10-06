@@ -418,8 +418,8 @@ export class WrestlingMatchEngine {
           w.airVy = 0;
           if (w.action === 'FLOWN_OFF') {
             w.action = 'DOWN';
-            w.actionTimer = 110;
-            w.rotation = Math.PI / 2;
+            w.actionTimer = 40; // Fast 0.6s knockdown recovery
+            w.rotation = 0;     // Zero canvas rotation (Frame 14 is pre-drawn horizontal)
             this.addShockwave(w.x, w.y);
             this.screenShake = 12;
             this.triggerAudio('thud');
@@ -435,7 +435,7 @@ export class WrestlingMatchEngine {
       if (w.action === 'FLOWN_OFF') {
         w.vx *= 0.94;
         w.vy *= 0.94;
-        w.rotation += w.facingLeft ? -0.2 : 0.2;
+        w.rotation = 0;
       } else if (w.action === 'DODGING' || w.action === 'SMACKING') {
         w.vx *= 0.88;
         w.vy *= 0.88;

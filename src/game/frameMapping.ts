@@ -11,25 +11,25 @@ export interface CharacterFrameMapping {
 
 // 🌍 GLOBAL HARDCODED SOURCE DEFAULT FOR ALL DEVICES WORLDWIDE
 export const DEFAULT_PLAYER_MAPPING: CharacterFrameMapping = {
-  idleFrames: [0, 1],
+  idleFrames: [0, 0],
   walkFrames: [1, 2],
   punchFrames: [4, 5],
-  kickFrames: [10, 11],
-  smackFrames: [9, 12],
-  dodgeFrames: [6, 7, 7], // Clean roll without frame 8 overhead sumo lift
-  hurtFrame: 13,
-  downFrame: 14,
+  kickFrames: [6, 14],
+  smackFrames: [13, 13],
+  dodgeFrames: [8, 15, 8],
+  hurtFrame: 10,
+  downFrame: 11
 };
 
 export const DEFAULT_OPPONENT_MAPPING: CharacterFrameMapping = {
-  idleFrames: [0, 1],
+  idleFrames: [0, 2],
   walkFrames: [1, 2],
-  punchFrames: [4, 5],
-  kickFrames: [10, 11],
-  smackFrames: [9, 12],
-  dodgeFrames: [6, 7, 7], // Clean roll without frame 8 overhead sumo lift
-  hurtFrame: 13,
-  downFrame: 14,
+  punchFrames: [4, 6],
+  kickFrames: [5, 5],
+  smackFrames: [8, 8],
+  dodgeFrames: [9, 9, 9],
+  hurtFrame: 14,
+  downFrame: 15
 };
 
 const STORAGE_KEY_PLAYER = 'wrestle_player_frame_mapping_v1';
@@ -39,7 +39,11 @@ export function getPlayerFrameMapping(): CharacterFrameMapping {
   applyUrlFrameMappingsIfPresent();
   try {
     const saved = localStorage.getItem(STORAGE_KEY_PLAYER);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(DEFAULT_PLAYER_MAPPING, parsed);
+      return parsed;
+    }
   } catch {
     // Fallback
   }
@@ -50,7 +54,11 @@ export function getOpponentFrameMapping(): CharacterFrameMapping {
   applyUrlFrameMappingsIfPresent();
   try {
     const saved = localStorage.getItem(STORAGE_KEY_OPPONENT);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(DEFAULT_OPPONENT_MAPPING, parsed);
+      return parsed;
+    }
   } catch {
     // Fallback
   }
@@ -58,10 +66,12 @@ export function getOpponentFrameMapping(): CharacterFrameMapping {
 }
 
 export function savePlayerFrameMapping(mapping: CharacterFrameMapping) {
+  Object.assign(DEFAULT_PLAYER_MAPPING, mapping);
   localStorage.setItem(STORAGE_KEY_PLAYER, JSON.stringify(mapping));
 }
 
 export function saveOpponentFrameMapping(mapping: CharacterFrameMapping) {
+  Object.assign(DEFAULT_OPPONENT_MAPPING, mapping);
   localStorage.setItem(STORAGE_KEY_OPPONENT, JSON.stringify(mapping));
 }
 
